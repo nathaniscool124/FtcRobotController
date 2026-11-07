@@ -3,19 +3,11 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.
 
-@TeleOp(name = "ByteSize TeleOp")
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
+@TeleOp(name = "ByteSize TeleOp");
 // This will be the "auto" stage of the game.
-public class bytesizeauto {
-
-    public void
-}
 
 public class bytesizeteleop extends LinearOpMode {
-
 
     @Override
     public void runOpMode() {
@@ -42,10 +34,10 @@ public class bytesizeteleop extends LinearOpMode {
         }
 
         if (gamepad1.dpad_down) {
-            leftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftDrive.setDirection(DcMotor.Direction.REVERSE);
             leftDrive.setPower(1);
         }else{
-            leftDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+            leftDrive.setDirection(DcMotor.Direction.FORWARD);
             leftDrive.setPower(0);
         }
 
@@ -56,10 +48,10 @@ public class bytesizeteleop extends LinearOpMode {
         }
 
         if (gamepad1.cross) {
-            rightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightDrive.setDirection(DcMotor.Direction.REVERSE);
             rightDrive.setPower(1);
         }else{
-            rightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+            rightDrive.setDirection(DcMotor.Direction.FORWARD);
             rightDrive.setPower(0);
         }
 
