@@ -15,6 +15,7 @@ public class bytesizeteleop extends LinearOpMode {
 
         waitForStart();
 
+
         // Drive forward at half power for 1 second
         rightDrive.setPower(0.5);
         leftDrive.setPower(0.5);
