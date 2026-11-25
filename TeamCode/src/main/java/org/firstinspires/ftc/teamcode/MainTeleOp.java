@@ -28,14 +28,21 @@ public class MainTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        DcMotor leftDrive  = hardwareMap.get(DcMotor.class, "leftDrive");
-        DcMotor rightDrive = hardwareMap.get(DcMotor.class, "rightDrive");
+        // 4-WHEEL OMNI / MECANUM DRIVE MOTORS
+        DcMotor frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
+        DcMotor frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        DcMotor backLeft   = hardwareMap.get(DcMotor.class, "backLeft");
+        DcMotor backRight  = hardwareMap.get(DcMotor.class, "backRight");
 
-        leftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         DcMotorEx flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -99,32 +106,52 @@ public class MainTeleOp extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // DRIVE
-            double DEADZONE = 0.1;      // ignores tiny stick drift
-            double LEFT_SCALE = 1.0;    // lower this if robot swerves RIGHT
-            double RIGHT_SCALE = 0.95;  // lower this if robot swerves LEFT
+            // DRIVE LOGIC
+            double DEADZONE = 0.1;
 
-            double forward = -gamepad1.left_stick_y;
-            if (Math.abs(gamepad2.left_stick_y) > Math.abs(forward)) {
-                forward = -gamepad2.left_stick_y;
+            double axial = -gamepad1.left_stick_y;
+            if (Math.abs(gamepad2.left_stick_y) > Math.abs(axial)) {
+                axial = -gamepad2.left_stick_y;
             }
+            double lateral = gamepad1.left_stick_x;
+            if (Math.abs(gamepad2.left_stick_x) > Math.abs(lateral)) {
+                lateral = gamepad2.left_stick_x;
+            }
+
             double turn = gamepad1.right_stick_x;
             if (Math.abs(gamepad2.right_stick_x) > Math.abs(turn)) {
                 turn = gamepad2.right_stick_x;
             }
-            if (Math.abs(forward) < DEADZONE) forward = 0;
+
+            if (Math.abs(axial) < DEADZONE) axial = 0;
+            if (Math.abs(lateral) < DEADZONE) lateral = 0;
             if (Math.abs(turn) < DEADZONE) turn = 0;
 
-            double leftPower = (forward + turn) * LEFT_SCALE;
-            double rightPower = (forward - turn) * RIGHT_SCALE;
-            double max = Math.max(1.0, Math.abs(leftPower));
-            max = Math.max(max, Math.abs(rightPower));
+            double frontLeftPower  = axial + lateral + turn;
+            double frontRightPower = axial - lateral - turn;
+            double backLeftPower   = axial - lateral + turn;
+            double backRightPower  = axial + lateral - turn;
+
+            double maxPower = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
+            maxPower = Math.max(maxPower, Math.abs(backLeftPower));
+            maxPower = Math.max(maxPower, Math.abs(backRightPower));
+
+            if (maxPower > 1.0) {
+                frontLeftPower  /= maxPower;
+                frontRightPower /= maxPower;
+                backLeftPower   /= maxPower;
+                backRightPower  /= maxPower;
+            }
+
             double speed = 1.0;
             if (gamepad1.right_trigger > 0.5 || gamepad2.right_trigger > 0.5) {
                 speed = SLOW_MODE_SCALE;
             }
-            leftDrive.setPower(leftPower / max * speed);
-            rightDrive.setPower(rightPower / max * speed);
+
+            frontLeft.setPower(frontLeftPower * speed);
+            frontRight.setPower(frontRightPower * speed);
+            backLeft.setPower(backLeftPower * speed);
+            backRight.setPower(backRightPower * speed);
 
             // BUTTONS
             boolean xPressed = gamepad1.x || gamepad2.x;
@@ -189,6 +216,7 @@ public class MainTeleOp extends LinearOpMode {
             }
 
             // TELEMETRY
+            telemetry.addData("Drive Motors", "FL, FR, BL, BR");
             telemetry.addData("Flywheel", flywheelOn ? "ON" : "OFF");
             telemetry.addData("Target RPM", "%.0f", targetRPM);
             telemetry.addData("Actual RPM", "%.0f", currentRPM);
